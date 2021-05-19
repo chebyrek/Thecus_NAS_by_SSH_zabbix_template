@@ -1,0 +1,388 @@
+{
+    "zabbix_export": {
+        "version": "5.2",
+        "date": "2021-05-18T02:24:12Z",
+        "groups": [
+            {
+                "name": "Templates/Network devices"
+            }
+        ],
+        "templates": [
+            {
+                "template": "ZT Thecus Linux NAS",
+                "name": "ZT Thecus Linux NAS",
+                "description": "\u0428\u0430\u0431\u043b\u043e\u043d \u0434\u043b\u044f \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449 Thecus",
+                "groups": [
+                    {
+                        "name": "Templates/Network devices"
+                    }
+                ],
+                "applications": [
+                    {
+                        "name": "Hard disks"
+                    },
+                    {
+                        "name": "iSCSI"
+                    },
+                    {
+                        "name": "RAIDs"
+                    },
+                    {
+                        "name": "Status"
+                    },
+                    {
+                        "name": "System"
+                    }
+                ],
+                "items": [
+                    {
+                        "name": "System fan status",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.6.0",
+                        "key": "systemFanStatus",
+                        "delay": "120s",
+                        "history": "7d",
+                        "applications": [
+                            {
+                                "name": "Status"
+                            }
+                        ],
+                        "valuemap": {
+                            "name": "th.systemFanStatus"
+                        }
+                    },
+                    {
+                        "name": "System firmware",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.3.0",
+                        "key": "systemFirmware",
+                        "delay": "1d",
+                        "trends": "0",
+                        "value_type": "TEXT",
+                        "inventory_link": "SOFTWARE",
+                        "applications": [
+                            {
+                                "name": "Status"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{diff(0)}>0",
+                                "name": "Firmware on {HOST.NAME} is changed",
+                                "priority": "INFO"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "System model",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.2.0",
+                        "key": "systemModel",
+                        "delay": "1d",
+                        "history": "1d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "applications": [
+                            {
+                                "name": "Status"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "System status",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.4.0",
+                        "key": "systemStatus",
+                        "delay": "120s",
+                        "history": "7d",
+                        "applications": [
+                            {
+                                "name": "Status"
+                            }
+                        ],
+                        "valuemap": {
+                            "name": "th.systemStatus"
+                        }
+                    },
+                    {
+                        "name": "System temperature",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.5.0",
+                        "key": "systemTemperature",
+                        "delay": "120s",
+                        "history": "7d",
+                        "units": "C",
+                        "description": "System temperature in centigrade",
+                        "applications": [
+                            {
+                                "name": "System"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "System vendor",
+                        "type": "SNMP_AGENT",
+                        "snmp_oid": ".1.3.6.1.4.1.38243.1.1.1.0",
+                        "key": "systemVendor",
+                        "delay": "1d",
+                        "history": "1d",
+                        "trends": "0",
+                        "value_type": "TEXT",
+                        "inventory_link": "VENDOR",
+                        "applications": [
+                            {
+                                "name": "Status"
+                            }
+                        ]
+                    }
+                ],
+                "discovery_rules": [
+                    {
+                        "name": "iSCSI Target for new NAS",
+                        "type": "SSH",
+                        "key": "ssh.run[target discovery,{HOST.CONN},{$PORT},utf8]",
+                        "delay": "1d",
+                        "params": "echo '['\ntgt_counter=1\ntgts=$(find /sys/kernel/config/target/iscsi -maxdepth 1 -name \"iqn*\")\ntgt_count=$(echo \"$tgts\" | wc -l)\nfor tgt in $tgts\n  do\n  lun_counter=1\n  luns=$(find $tgt/tpgt_1/lun -maxdepth 1 -name \"lun_*\" -printf \"%f\\n\")\n  lun_count=$(echo \"$luns\" | wc -l)\n  tgt_name=$(echo \"$tgt\" | awk -F: '{print $2}')\n\n  for l in $luns\n    do\n    echo '{\"name\":\"'$tgt_name:$l'\",'\n    echo '\"full_tgt_path\":\"'$tgt'\",'\n    echo '\"lun_name\":\"'$l'\"}'\n    if [[ $lun_count -ne $lun_counter ]]; then echo ','; fi; lun_counter=$((lun_counter+1))\n  done\n\n  if [[ $tgt_count -ne $tgt_counter ]]; then echo ','; fi; tgt_counter=$((tgt_counter+1))\ndone\necho ']'",
+                        "username": "{$USER}",
+                        "password": "{$PASS}",
+                        "description": "\u041e\u0431\u043d\u0430\u0440\u0443\u0436\u0438\u0432\u0430\u0435\u0442 \u0432\u0441\u0435  lun \u043d\u0430 \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449\u0435\n\nNAS 2.06 /sys/kernel/config/target/iscsi",
+                        "item_prototypes": [
+                            {
+                                "name": "Size of {#LUN}",
+                                "type": "SSH",
+                                "key": "ssh.run[Size of {#LUN},{HOST.CONN},{$PORT},utf8]",
+                                "delay": "1d",
+                                "history": "7d",
+                                "units": "b",
+                                "params": "grep -oe '\\<Size: [0-9]*' $(find {#TARGET}/tpgt_1/lun/{#LUN_NAME} -name \"lio*\")'/info' | awk '{print $2}'",
+                                "username": "{$USER}",
+                                "password": "{$PASS}",
+                                "description": "Lun size",
+                                "applications": [
+                                    {
+                                        "name": "iSCSI"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "{#LUN}",
+                                "type": "SSH",
+                                "key": "ssh.run[{#LUN},{HOST.CONN},{$PORT},utf8]",
+                                "delay": "2m",
+                                "history": "7d",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "params": "grep -e InitiatorName {#TARGET}/tpgt_1/info | awk '{print $2}' | awk -F: '{if ($2!=\"\") print $2; else print $1}' | awk -F. '{print $1}'",
+                                "username": "{$USER}",
+                                "password": "{$PASS}",
+                                "description": "\u0434\u043b\u044f \u043d\u043e\u0432\u044b\u0445 \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449",
+                                "applications": [
+                                    {
+                                        "name": "iSCSI"
+                                    }
+                                ],
+                                "trigger_prototypes": [
+                                    {
+                                        "expression": "{nodata(600)}=1",
+                                        "recovery_mode": "RECOVERY_EXPRESSION",
+                                        "recovery_expression": "{nodata(60)}=0",
+                                        "name": "No data from {HOST.NAME} by ssh",
+                                        "priority": "AVERAGE",
+                                        "manual_close": "YES",
+                                        "dependencies": [
+                                            {
+                                                "name": "{HOST.NAME} is unavailable by ICMP",
+                                                "expression": "{ZT ICMP Ping:icmpping.max(#3)}=0",
+                                                "recovery_expression": "{ZT ICMP Ping:icmpping.max(#3)}>0"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "expression": "{strlen(#1)}=0",
+                                        "recovery_mode": "RECOVERY_EXPRESSION",
+                                        "recovery_expression": "{strlen(#1)}>0",
+                                        "name": "{#TARGET} was disconnected from initiator",
+                                        "priority": "AVERAGE",
+                                        "manual_close": "YES",
+                                        "dependencies": [
+                                            {
+                                                "name": "No data from {HOST.NAME} by ssh",
+                                                "expression": "{ZT Thecus Linux NAS:ssh.run[{#LUN},{HOST.CONN},{$PORT},utf8].nodata(600)}=1",
+                                                "recovery_expression": "{ZT Thecus Linux NAS:ssh.run[{#LUN},{HOST.CONN},{$PORT},utf8].nodata(60)}=0"
+                                            },
+                                            {
+                                                "name": "{HOST.NAME} is unavailable by ICMP",
+                                                "expression": "{ZT ICMP Ping:icmpping.max(#3)}=0",
+                                                "recovery_expression": "{ZT ICMP Ping:icmpping.max(#3)}>0"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#LUN_NAME}",
+                                "path": "$.lun_name"
+                            },
+                            {
+                                "lld_macro": "{#LUN}",
+                                "path": "$.name"
+                            },
+                            {
+                                "lld_macro": "{#TARGET}",
+                                "path": "$.full_tgt_path"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "iSCSI Target for old NAS",
+                        "type": "SSH",
+                        "key": "ssh.run[target discovery old nas,{HOST.CONN},{$PORT},utf8]",
+                        "delay": "1d",
+                        "params": "counter=1; res=$(eval \"find {$PATH_TO_TARGET} -name 'iqn*20*'\" | awk -F/ {'print $7'}); count=$(echo \"$res\" | wc -l); echo \"[\"; for i in $res; do echo '{\"target_name\":\"'$i'\"}'; if [[\n$count -ne $counter ]];then echo \",\"; fi; counter=$((counter+1)); done; echo \"]\"",
+                        "username": "{$USER}",
+                        "password": "{$PASS}",
+                        "description": "\u041e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u0438\u0435 \u0434\u043b\u044f \u0441\u0442\u0430\u0440\u044b\u0445 \u0445\u0440\u0430\u043d\u0438\u043b\u0438\u0449",
+                        "item_prototypes": [
+                            {
+                                "name": "Size of {#TARGET}",
+                                "type": "SSH",
+                                "key": "ssh.run[Size of {{#TARGET}},{HOST.CONN},{$PORT},utf8]",
+                                "delay": "1d",
+                                "history": "7d",
+                                "units": "Mb",
+                                "params": "cat {$PATH_TO_TARGET}/{#TARGET}/luns/0/device/size_mb",
+                                "username": "{$USER}",
+                                "password": "{$PASS}",
+                                "applications": [
+                                    {
+                                        "name": "iSCSI"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Target {#TARGET}",
+                                "type": "SSH",
+                                "key": "ssh.run[{#TARGET},{HOST.CONN},{$PORT},utf8]",
+                                "delay": "5m",
+                                "history": "7d",
+                                "trends": "0",
+                                "value_type": "TEXT",
+                                "params": "ls {$PATH_TO_TARGET}/{#TARGET}/sessions | awk -F: '{print $2}' | awk -F. '{print $1}'",
+                                "username": "{$USER}",
+                                "password": "{$PASS}",
+                                "applications": [
+                                    {
+                                        "name": "iSCSI"
+                                    }
+                                ],
+                                "trigger_prototypes": [
+                                    {
+                                        "expression": "{nodata(600)}=1",
+                                        "recovery_mode": "RECOVERY_EXPRESSION",
+                                        "recovery_expression": "{nodata(60)}=0",
+                                        "name": "No data from {HOST.NAME} by ssh",
+                                        "priority": "AVERAGE",
+                                        "manual_close": "YES",
+                                        "dependencies": [
+                                            {
+                                                "name": "{HOST.NAME} is unavailable by ICMP",
+                                                "expression": "{ZT ICMP Ping:icmpping.max(#3)}=0",
+                                                "recovery_expression": "{ZT ICMP Ping:icmpping.max(#3)}>0"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "expression": "{strlen(#1)}=0",
+                                        "recovery_mode": "RECOVERY_EXPRESSION",
+                                        "recovery_expression": "{strlen(#1)}>0",
+                                        "name": "{#TARGET} was disconnected from initiator",
+                                        "priority": "AVERAGE",
+                                        "manual_close": "YES",
+                                        "dependencies": [
+                                            {
+                                                "name": "No data from {HOST.NAME} by ssh",
+                                                "expression": "{ZT Thecus Linux NAS:ssh.run[{#TARGET},{HOST.CONN},{$PORT},utf8].nodata(600)}=1",
+                                                "recovery_expression": "{ZT Thecus Linux NAS:ssh.run[{#TARGET},{HOST.CONN},{$PORT},utf8].nodata(60)}=0"
+                                            },
+                                            {
+                                                "name": "{HOST.NAME} is unavailable by ICMP",
+                                                "expression": "{ZT ICMP Ping:icmpping.max(#3)}=0",
+                                                "recovery_expression": "{ZT ICMP Ping:icmpping.max(#3)}>0"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "lld_macro_paths": [
+                            {
+                                "lld_macro": "{#TARGET}",
+                                "path": "$.target_name"
+                            }
+                        ]
+                    }
+                ],
+                "macros": [
+                    {
+                        "macro": "{$HD_TEMPERATURE_ALARM}",
+                        "value": "51"
+                    },
+                    {
+                        "macro": "{$HD_TEMPERATURE_WARNING}",
+                        "value": "40"
+                    },
+                    {
+                        "macro": "{$PASS}",
+                        "type": "SECRET_TEXT"
+                    },
+                    {
+                        "macro": "{$PATH_TO_TARGET}",
+                        "value": "/sys/kernel/config/target/iscsi"
+                    },
+                    {
+                        "macro": "{$PORT}",
+                        "value": "22"
+                    },
+                    {
+                        "macro": "{$SNMP_PORT}",
+                        "value": "161"
+                    },
+                    {
+                        "macro": "{$USER}",
+                        "value": "root"
+                    }
+                ]
+            }
+        ],
+        "value_maps": [
+            {
+                "name": "th.systemFanStatus",
+                "mappings": [
+                    {
+                        "value": "0",
+                        "newvalue": "Normal"
+                    },
+                    {
+                        "value": "1",
+                        "newvalue": "Failed"
+                    }
+                ]
+            },
+            {
+                "name": "th.systemStatus",
+                "mappings": [
+                    {
+                        "value": "0",
+                        "newvalue": "Normal"
+                    },
+                    {
+                        "value": "1",
+                        "newvalue": "Failed"
+                    }
+                ]
+            }
+        ]
+    }
+}
